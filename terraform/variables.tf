@@ -24,3 +24,8 @@ variable "aws_region" {
   default = "eu-central-1"
 }
 
+# FastApi Port
+variable "container_port" {
+  type    = number
+  default = 8000
+}

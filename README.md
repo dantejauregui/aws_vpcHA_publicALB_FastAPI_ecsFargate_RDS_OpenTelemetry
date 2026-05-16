@@ -56,7 +56,7 @@ Same ECS service seeing by different traffic directions:
                     |                                              |
           +-------------------+                         +-------------------+
           | ECS Fargate Task  |                         | ECS Fargate Task  |
-          | nginx container   |                         | nginx container   |
+          | fastAPIapp container|                      | fastAPIapp container|
           | private IP only   |                         | private IP only   |
           +-------------------+                         +-------------------+
                     |                                              |
@@ -99,4 +99,33 @@ NAT Gateway
 IGW
    |
 Internet
+```
+
+
+
+## Creating CICD & Docker image
+
+For creation of image we use in my Mac M1:
+docker buildx build -t myapp:latest .
+
+
+For creating the container we use:
+docker run myapp:latest
+
+And we use inside the Dockerfile this line in order to test the Image created:
+CMD ["sleep", "infinity"]
+
+## Networking FastApi + Terraform infrastructure:
+These FOUR things MUST match:
+
+```
+uvicorn --port
+=
+target group backend port
+=
+ecs Task Definition containerPort
+=
+ecs service container_port
+=
+ecs task SG inbound port
 ```

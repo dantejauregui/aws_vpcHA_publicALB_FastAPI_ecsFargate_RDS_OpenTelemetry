@@ -33,8 +33,9 @@ resource "aws_lb" "fastApi_alb" {
 }
 
 resource "aws_lb_target_group" "fastApi_alb_tg" {
-  name        = "${var.project_name}-alb-tg"
-  port        = 80
+  name = "${var.project_name}-alb-tg"
+  # What port ALB forwards traffic to (this should match the ecs container application port):
+  port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.fastApi_vpc.id
   target_type = "ip"

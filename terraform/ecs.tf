@@ -4,9 +4,9 @@ resource "aws_security_group" "fastApi_alb_ecs" {
   vpc_id      = aws_vpc.fastApi_vpc.id
 
   ingress {
-    description     = "HTTP from ALB"
-    from_port       = 80
-    to_port         = 80
+    description     = "what inbound port ALB can access on ECS tasks (must match container runtime port)"
+    from_port       = var.container_port
+    to_port         = var.container_port
     protocol        = "tcp"
     security_groups = [aws_security_group.fastApi_alb_sg.id]
   }
@@ -49,12 +49,14 @@ resource "aws_ecs_task_definition" "fastApi_ecs_task_definition" {
   container_definitions = jsonencode([
     {
       name      = "fastApi_dockerHub_image"
-      image     = "nginx:latest"
+      image     = "dantej/fastapi1:latest"
       essential = true
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          # What port the app listens on INSIDE the container (must match uvicorn --port XXXX):
+          containerPort = var.container_port
+
+          hostPort = var.container_port
         }
       ]
       logConfiguration = {
@@ -91,7 +93,7 @@ resource "aws_ecs_service" "fastApi_ecs_service" {
   load_balancer {
     target_group_arn = aws_lb_target_group.fastApi_alb_tg.arn
     container_name   = "fastApi_dockerHub_image"
-    container_port   = 80
+    container_port   = var.container_port
   }
 
   depends_on = [aws_lb_listener.fastApi_alb_listener]
