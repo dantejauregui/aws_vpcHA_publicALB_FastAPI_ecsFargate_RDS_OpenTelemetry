@@ -24,20 +24,20 @@ jobs:
           version: "0.10.2"
       
       - name: Install the project
-        working-directory: ${working-dir}
+        working-directory: python_uv
         run: uv sync --locked --all-extras --dev
 
       - name: linting the project
-        working-directory: ${working-dir}
+        working-directory: python_uv
         run: uv run ruff check .
 
       - name: formatting checks in the project
-        working-directory: ${working-dir}
+        working-directory: python_uv
         run: uv run ruff format --check .
       
       # Source-Level Validation:
       - name: Validate FastAPI app imports correctly
-        working-directory: ${working-dir}
+        working-directory: python_uv
         run: |
           uv run python -c "
           from main import app
@@ -48,7 +48,7 @@ jobs:
           "
       
       - name: Docker Build
-        working-directory: ${working-dir}
+        working-directory: python_uv
         run: docker build --platform linux/amd64 -t dantej/fastapi1:latest .
 
       # Container-Level Validation: check that basic features work and didn't miss to include crucial files
