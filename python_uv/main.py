@@ -23,6 +23,7 @@ class ItemResponse(Item):
 
 # --- Routes ---
 
+
 @app.get("/")
 async def root():
     return {"status": "ok"}
@@ -38,13 +39,9 @@ async def create_item(item: Item):
 
 @app.get("/items", response_model=List[ItemResponse])
 async def list_items(
-    min_price: float = Query(0, ge=0),
-    max_price: float = Query(999999, ge=0)
+    min_price: float = Query(0, ge=0), max_price: float = Query(999999, ge=0)
 ):
-    return [
-        item for item in items_db
-        if min_price <= item["price"] <= max_price
-    ]
+    return [item for item in items_db if min_price <= item["price"] <= max_price]
 
 
 @app.get("/items/{item_id}", response_model=ItemResponse)
@@ -67,11 +64,5 @@ async def delete_item(item_id: str):
 @app.get("/stats")
 async def stats():
     total = len(items_db)
-    avg_price = (
-        sum(item["price"] for item in items_db) / total
-        if total > 0 else 0
-    )
-    return {
-        "total_items": total,
-        "average_price": avg_price
-    }
+    avg_price = sum(item["price"] for item in items_db) / total if total > 0 else 0
+    return {"total_items": total, "average_price": avg_price}
