@@ -2,10 +2,11 @@ name: ECS Workflow
 on:
   workflow_dispatch:
 env:
-  working-dir: 'python_uv'
+  WORKING_DIR: python_uv
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/fastapi1
   IMAGE_TAG: ${{ github.run_number }}
 
+# GITHUB_TOKEN permissions:
 permissions:
   contents: read
   packages: write
@@ -22,7 +23,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v6
         with:
-          python-version-file: "python_uv/pyproject.toml"
+          python-version-file: "${{ env.WORKING_DIR }}/pyproject.toml"
       
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
@@ -31,20 +32,20 @@ jobs:
           version: "0.10.2"
       
       - name: Install the project
-        working-directory: python_uv
+        working-directory: ${{ env.WORKING_DIR }}
         run: uv sync --locked --all-extras --dev
 
       - name: linting the project
-        working-directory: python_uv
+        working-directory: ${{ env.WORKING_DIR }}
         run: uv run ruff check .
 
       - name: formatting checks in the project
-        working-directory: python_uv
+        working-directory: ${{ env.WORKING_DIR }}
         run: uv run ruff format --check .
       
       # Source-Level Validation:
       - name: Validate FastAPI app imports correctly
-        working-directory: python_uv
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           uv run python -c "
           from main import app
@@ -55,7 +56,7 @@ jobs:
           "
       
       - name: Docker Build
-        working-directory: python_uv
+        working-directory: ${{ env.WORKING_DIR }}
         run: docker build --platform linux/amd64 -t $IMAGE_NAME:$IMAGE_TAG .
 
       # Container-Level Validation: check that basic features work and didn't miss to include crucial files
