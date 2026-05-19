@@ -2,7 +2,7 @@ name: ECS Workflow
 on:
   workflow_dispatch:
 env:
-  message: 'conversation'
+  working-dir: 'python_uv'
 jobs:
   my_build:
     name: fastAPI-app
@@ -24,32 +24,54 @@ jobs:
           version: "0.10.2"
       
       - name: Install the project
-        working-directory: python_uv
+        working-directory: ${working-dir}
         run: uv sync --locked --all-extras --dev
 
       - name: linting the project
-        working-directory: python_uv
+        working-directory: ${working-dir}
         run: uv run ruff check .
 
       - name: formatting checks in the project
-        working-directory: python_uv
+        working-directory: ${working-dir}
         run: uv run ruff format --check .
       
       # Source-Level Validation:
       - name: Validate FastAPI app imports correctly
-        working-directory: python_uv
+        working-directory: ${working-dir}
         run: |
           uv run python -c "
           from main import app
 
           assert app is not None
 
-          print('FastAPI app imported successfully')
+          print('FastAPI app imported successfully!')
           "
       
-      # - name: Docker Build
+      - name: Docker Build
+        working-directory: ${working-dir}
+        run: docker build --platform linux/amd64 -t dantej/fastapi1:latest .
 
-      
-      # Check that basic features work and we didn't miss to include crucial files
-      # - name: Container Smoke test 
-      #   run: uv run uvicorn main:app --host 0.0.0.0 --port 8000
+      # Container-Level Validation: check that basic features work and didn't miss to include crucial files
+      - name: Container Smoke test (polling with timeout)
+        run: |
+          docker run -d -p 8000:8000 --name fastapi-smoke dantej/fastapi1:latest
+
+          echo "Waiting for FastAPI container to become healthy..."
+
+          for i in {1..15}; do
+            if curl --fail --silent http://localhost:8000/health > /dev/null; then
+              echo "Container smoke test passed!"
+              docker stop fastapi-smoke
+              exit 0
+            fi
+
+            echo "Attempt $i failed... retrying in 2 seconds"
+            sleep 2
+          done
+
+          echo "Container failed smoke test"
+          docker logs fastapi-smoke
+
+          docker stop fastapi-smoke
+
+          exit 1

@@ -1,0 +1,77 @@
+# Git and repository metadata
+.git
+.git/
+.gitignore
+.github/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyre/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Virtual environments and local installs
+.venv/
+venv/
+env/
+ENV/
+.envrc
+
+# Build and packaging output
+build/
+dist/
+wheels/
+*.egg-info/
+*.egg
+
+# Local environment and secrets
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+credentials
+config
+
+# Logs and runtime files
+*.log
+logs/
+tmp/
+temp/
+*.pid
+
+# Tests and development-only files
+tests/
+test/
+docs/
+.vscode/
+.idea/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Infrastructure/state should not enter the app image
+terraform/
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Local container files
+docker-compose*.yml
+compose*.yml

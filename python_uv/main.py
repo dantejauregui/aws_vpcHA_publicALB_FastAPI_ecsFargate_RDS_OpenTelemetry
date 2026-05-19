@@ -2,9 +2,15 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from uuid import uuid4
-
+from datetime import datetime, timezone
 
 app = FastAPI(title="My Serious API")
+
+SERVICE_NAME = "fastapi-app"
+SERVICE_VERSION = "1.0.0"
+ENVIRONMENT = "dev"
+START_TIME = datetime.now(timezone.utc)
+
 
 # --- Fake DB ---
 items_db = []
@@ -66,3 +72,18 @@ async def stats():
     total = len(items_db)
     avg_price = sum(item["price"] for item in items_db) / total if total > 0 else 0
     return {"total_items": total, "average_price": avg_price}
+
+
+@app.get("/health")
+async def health():
+    uptime_seconds = int(
+        (datetime.now(timezone.utc) - START_TIME).total_seconds()
+    )
+    return {
+        "status": "healthy",
+        "service": SERVICE_NAME,
+        "version": SERVICE_VERSION,
+        "environment": ENVIRONMENT,
+        "uptime_seconds": uptime_seconds,
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+    }
