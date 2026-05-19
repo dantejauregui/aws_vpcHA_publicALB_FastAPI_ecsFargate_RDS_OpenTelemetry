@@ -76,9 +76,7 @@ async def stats():
 
 @app.get("/health")
 async def health():
-    uptime_seconds = int(
-        (datetime.now(timezone.utc) - START_TIME).total_seconds()
-    )
+    uptime_seconds = int((datetime.now(timezone.utc) - START_TIME).total_seconds())
     return {
         "status": "healthy",
         "service": SERVICE_NAME,
