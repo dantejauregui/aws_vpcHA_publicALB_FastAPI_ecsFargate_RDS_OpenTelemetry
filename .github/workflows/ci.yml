@@ -4,7 +4,7 @@ on:
 env:
   working-dir: 'python_uv'
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/fastapi1
-  IMAGE_TAG: ${{ github.sha }}
+  IMAGE_TAG: ${{ github.run_number }}
 
 permissions:
   contents: read
