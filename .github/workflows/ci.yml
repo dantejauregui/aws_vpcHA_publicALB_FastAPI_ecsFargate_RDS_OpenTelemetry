@@ -3,6 +3,13 @@ on:
   workflow_dispatch:
 env:
   working-dir: 'python_uv'
+  IMAGE_NAME: ghcr.io/dantej/fastapi1
+  IMAGE_TAG: ${{ github.sha }}
+
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   my_build:
     name: fastAPI-app
@@ -49,12 +56,12 @@ jobs:
       
       - name: Docker Build
         working-directory: python_uv
-        run: docker build --platform linux/amd64 -t dantej/fastapi1:latest .
+        run: docker build --platform linux/amd64 -t $IMAGE_NAME:$IMAGE_TAG .
 
       # Container-Level Validation: check that basic features work and didn't miss to include crucial files
       - name: Container Smoke test (polling with timeout)
         run: |
-          docker run -d -p 8000:8000 --name fastapi-smoke dantej/fastapi1:latest
+          docker run -d -p 8000:8000 --name fastapi-smoke $IMAGE_NAME:$IMAGE_TAG
 
           echo "Waiting for FastAPI container to become healthy..."
 
@@ -75,3 +82,12 @@ jobs:
           docker stop fastapi-smoke
 
           exit 1
+
+      - name: Login to GitHub Container Registry
+        run: |
+          echo "${{ github.token }}" | docker login ghcr.io \
+            -u ${{ github.actor }} \
+            --password-stdin
+
+      - name: Docker Push to GitHub Container Registry
+        run: docker push $IMAGE_NAME:$IMAGE_TAG
