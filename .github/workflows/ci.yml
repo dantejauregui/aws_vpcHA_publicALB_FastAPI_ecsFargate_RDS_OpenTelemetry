@@ -5,11 +5,32 @@ env:
   message: 'conversation'
 jobs:
   my_build:
+    name: fastAPI-app
     runs-on: ubuntu-latest
+
     steps:
       - name: Checking out our code
-        uses: actions/checkout@master
-      - name: Say something
-        run: |
-          echo "A little less ${message}"
-          echo "A little more action"
+        uses: actions/checkout@v6
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "python_uv/pyproject.toml"
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          # Install a specific version of uv.
+          version: "0.10.2"
+      
+      - name: Install the project
+        working-directory: python_uv
+        run: uv sync --locked --all-extras --dev
+      
+      - name: linting the project
+        working-directory: python_uv
+        run: uv run ruff check .
+
+      - name: formatting checks in the project
+        working-directory: python_uv
+        run: uv run ruff format --check .
