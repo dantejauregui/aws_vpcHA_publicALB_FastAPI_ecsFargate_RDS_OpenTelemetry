@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 env:
   working-dir: 'python_uv'
-  IMAGE_NAME: ghcr.io/dantejauregui/fastapi1
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/fastapi1
   IMAGE_TAG: ${{ github.sha }}
 
 permissions:
@@ -84,10 +84,11 @@ jobs:
           exit 1
 
       - name: Login to GitHub Container Registry
-        run: |
-          echo "${{ github.token }}" | docker login ghcr.io \
-            -u ${{ github.actor }} \
-            --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker Push to GitHub Container Registry
         run: docker push $IMAGE_NAME:$IMAGE_TAG
