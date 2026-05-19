@@ -38,7 +38,14 @@ jobs:
       # Source-Level Validation:
       - name: Validate FastAPI app imports correctly
         working-directory: python_uv
-        run: uv run python -c "from main import app; print(app)"
+        run: |
+          uv run python -c "
+          from main import app
+
+          assert app is not None
+
+          print('FastAPI app imported successfully')
+          "
       
       # - name: Docker Build
 
