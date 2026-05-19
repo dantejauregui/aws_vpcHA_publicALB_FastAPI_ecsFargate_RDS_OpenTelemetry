@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 env:
   working-dir: 'python_uv'
-  IMAGE_NAME: ghcr.io/dantej/fastapi1
+  IMAGE_NAME: ghcr.io/dantejauregui/fastapi1
   IMAGE_TAG: ${{ github.sha }}
 
 permissions:
