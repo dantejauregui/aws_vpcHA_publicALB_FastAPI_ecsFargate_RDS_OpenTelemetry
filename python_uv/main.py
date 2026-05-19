@@ -2,10 +2,7 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from uuid import uuid4
-import json
-import requests
-import boto3
-import os
+
 
 app = FastAPI(title="My Serious API")
 
