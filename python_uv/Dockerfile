@@ -2,6 +2,12 @@
 FROM python:3.12-slim-trixie
 COPY --from=ghcr.io/astral-sh/uv:0.10.2 /uv /uvx /bin/
 
+# Install PostgreSQL client & curl
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory
 WORKDIR /app
 
