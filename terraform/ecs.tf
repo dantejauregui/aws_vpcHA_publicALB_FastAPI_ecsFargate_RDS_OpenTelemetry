@@ -70,7 +70,7 @@ resource "aws_ecs_task_definition" "fastApi_ecs_task_definition" {
       environment = [
         {
           name  = "DATABASE_URL"
-          value = "postgresql+psycopg://dbadmin:ChangeMe123456!@${aws_db_instance.fastApi_rds.address}:5432/fastApi_db?sslmode=require"
+          value = "postgresql+psycopg://dbadmin:ChangeMe123@${aws_db_instance.fastApi_rds.address}:5432/fastApi_db?sslmode=require"
         }
       ]
     }

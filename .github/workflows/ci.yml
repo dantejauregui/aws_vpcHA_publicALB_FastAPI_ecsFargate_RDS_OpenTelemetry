@@ -46,6 +46,9 @@ jobs:
       # Source-Level Validation:
       - name: Validate FastAPI app imports correctly
         working-directory: ${{ env.WORKING_DIR }}
+        # Adding a dummy DATABASE_URL only for the cicd import check:
+        env:
+          DATABASE_URL: postgresql+psycopg://dummy:dummy@localhost:5432/dummy
         run: |
           uv run python -c "
           from main import app

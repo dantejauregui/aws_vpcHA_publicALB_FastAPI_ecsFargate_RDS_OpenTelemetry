@@ -25,7 +25,7 @@ resource "aws_db_instance" "fastApi_rds" {
   engine_version         = "17.10"
   instance_class         = "db.t3.micro"
   username               = "dbadmin"
-  password               = "ChangeMe123456!"
+  password               = "ChangeMe123"
   skip_final_snapshot    = true
   publicly_accessible    = false
   storage_encrypted      = true
