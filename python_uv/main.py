@@ -29,6 +29,7 @@ class ItemResponse(Item):
 
 # --- Routes ---
 
+
 @app.get("/")
 async def root():
     return {"status": "ok"}
@@ -41,7 +42,6 @@ async def create_item(item: Item):
     db: Session = SessionLocal()
 
     try:
-
         # Create ORM object
         db_item = ItemDB(
             name=item.name,
@@ -78,7 +78,6 @@ async def list_items(
     db: Session = SessionLocal()
 
     try:
-
         items = (
             db.query(ItemDB)
             .filter(ItemDB.price >= min_price)
@@ -105,12 +104,7 @@ async def get_item(item_id: str):
     db: Session = SessionLocal()
 
     try:
-
-        item = (
-            db.query(ItemDB)
-            .filter(ItemDB.id == item_id)
-            .first()
-        )
+        item = db.query(ItemDB).filter(ItemDB.id == item_id).first()
 
         if not item:
             raise HTTPException(
@@ -134,12 +128,7 @@ async def delete_item(item_id: str):
     db: Session = SessionLocal()
 
     try:
-
-        item = (
-            db.query(ItemDB)
-            .filter(ItemDB.id == item_id)
-            .first()
-        )
+        item = db.query(ItemDB).filter(ItemDB.id == item_id).first()
 
         if not item:
             raise HTTPException(
@@ -162,7 +151,6 @@ async def stats():
     db: Session = SessionLocal()
 
     try:
-
         total_items = db.query(func.count(ItemDB.id)).scalar()
 
         average_price = db.query(func.avg(ItemDB.price)).scalar()

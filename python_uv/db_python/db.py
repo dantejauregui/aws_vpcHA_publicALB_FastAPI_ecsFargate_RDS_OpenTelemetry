@@ -1,15 +1,17 @@
 import os
-from sqlalchemy import create_engine 
+from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # ONLY FOR LOCAL TESTING: enable this to Load .env variables
 # from dotenv import load_dotenv
 # load_dotenv()
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # SQLAlchemy Engine
-engine = create_engine(DATABASE_URL, echo=True ) #shows generated SQL in logs (great for learning)
+engine = create_engine(
+    DATABASE_URL, echo=True
+)  # shows generated SQL in logs (great for learning)
 
 # Session Factory
 SessionLocal = sessionmaker(
