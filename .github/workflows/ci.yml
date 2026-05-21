@@ -65,6 +65,8 @@ jobs:
       # Container-Level Validation: check that basic features work and didn't miss to include crucial files
       - name: Container Smoke test (polling with timeout)
         # Adding a dummy DATABASE_URL only for the cicd import check:
+        env:
+          DATABASE_URL: postgresql+psycopg://dummy:dummy@localhost:5432/dummy
         run: |
           docker run -d \
             -p 8000:8000 \
