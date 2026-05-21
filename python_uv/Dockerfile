@@ -12,7 +12,8 @@ COPY pyproject.toml uv.lock /app
 RUN uv sync --no-dev --locked --no-editable --no-install-project
 
 # Copy your FastAPI app
-COPY main.py /app
+COPY main.py /app/
+COPY db_python /app/db_python
 
 # application runtime environment ".env" takes precedence (over system Python using $PATH)
 ENV PATH="/app/.venv/bin:$PATH"
