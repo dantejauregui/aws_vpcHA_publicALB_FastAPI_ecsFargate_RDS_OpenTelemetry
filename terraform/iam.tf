@@ -78,13 +78,26 @@ resource "aws_iam_role" "ecs_task_role" {
 
 
 # Identity-based Permission-Policy for MY APP (WHAT this role can do):
-# EMPTY FOR NOW!! Add permissions later depending on app needs (For now will be commented):
+# Enabling ECS EXEC:
 
-# data "aws_iam_policy_document" "ecs_task_permission_policy" {
-# }
+data "aws_iam_policy_document" "ecs_task_permission_policy" {
 
-# resource "aws_iam_role_policy" "ecs_task_policy" {
-#   name   = "ecs_task_policy"
-#   role   = aws_iam_role.ecs_task_role.id
-#   policy = data.aws_iam_policy_document.ecs_task_permission_policy.json
-# }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_policy" {
+  name   = "ecs_task_policy"
+  role   = aws_iam_role.ecs_task_role.id
+  policy = data.aws_iam_policy_document.ecs_task_permission_policy.json
+}

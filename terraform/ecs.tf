@@ -1,4 +1,4 @@
-resource "aws_security_group" "fastApi_alb_ecs" {
+resource "aws_security_group" "fastApi_ecs_sg" {
   name        = "${var.project_name}_ecs"
   description = "Allow all outbound traffic"
   vpc_id      = aws_vpc.fastApi_vpc.id
@@ -75,11 +75,12 @@ resource "aws_ecs_task_definition" "fastApi_ecs_task_definition" {
 }
 
 resource "aws_ecs_service" "fastApi_ecs_service" {
-  name            = "${var.project_name}_ecs_service"
-  cluster         = aws_ecs_cluster.fastApi_ecs_cluster.id
-  task_definition = aws_ecs_task_definition.fastApi_ecs_task_definition.arn
-  desired_count   = 2
-  launch_type     = "FARGATE"
+  name                   = "${var.project_name}_ecs_service"
+  cluster                = aws_ecs_cluster.fastApi_ecs_cluster.id
+  task_definition        = aws_ecs_task_definition.fastApi_ecs_task_definition.arn
+  desired_count          = 2
+  launch_type            = "FARGATE"
+  enable_execute_command = true #enables ECS EXEC
 
   network_configuration {
     subnets = [
@@ -87,7 +88,7 @@ resource "aws_ecs_service" "fastApi_ecs_service" {
       aws_subnet.fastApi_sn_private_2.id
     ]
     assign_public_ip = false
-    security_groups  = [aws_security_group.fastApi_alb_ecs.id]
+    security_groups  = [aws_security_group.fastApi_ecs_sg.id]
   }
 
   load_balancer {

@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS items (
+    id UUID PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    price NUMERIC(10,2) NOT NULL CHECK (price > 0),
+    tags TEXT[] DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

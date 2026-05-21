@@ -436,22 +436,20 @@ curl http://localhost:8000/health
 
 ---
 
-# Important Learning Note
 
-This repository is intentionally built as a production-style architecture.
+## PostgreSQL Does NOT Use IAM By Default
 
-The objective is not merely deploying a FastAPI application, but understanding:
+Your FastAPI app connects like:
 
-```text
-How real cloud systems behave operationally
-```
+app
+↓
+TCP connection :5432
+↓
+username/password auth
+↓
+PostgreSQL protocol
 
-including:
+AWS IAM is NOT involved.
+Therefore ECS Does NOT Need IAM Permissions To "Talk To DB".
 
-* networking boundaries
-* runtime lifecycle
-* deployment flow
-* container orchestration
-* CI/CD artifact management
-* infrastructure behavior
-* operational tradeoffs
+So when you used "multi_az = true", you always connect to the "RDS writer endpoint" when you access the provided RDS URL endpoint hostname.
