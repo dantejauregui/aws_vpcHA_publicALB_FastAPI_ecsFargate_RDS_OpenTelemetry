@@ -48,11 +48,11 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         # Adding a dummy DATABASE_URL only for the cicd import check:
         env:
-          DB_HOST=localhost
-          DB_PORT=5432
-          DB_NAME=fastApi_db
-          DB_USER=dbadmin
-          DB_PASSWORD=ChangeMe123
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_NAME: fastApi_db
+          DB_USER: dbadmin
+          DB_PASSWORD: ChangeMe123
         run: |
           uv run python -c "
           from main import app
