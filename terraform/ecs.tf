@@ -49,7 +49,7 @@ resource "aws_ecs_task_definition" "fastApi_ecs_task_definition" {
   container_definitions = jsonencode([
     {
       name      = "fastApi_dockerHub_image"
-      image     = "ghcr.io/dantejauregui/fastapi1:20"
+      image     = "ghcr.io/dantejauregui/fastapi1:24"
       essential = true
       portMappings = [
         {
