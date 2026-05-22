@@ -1,0 +1,138 @@
+name: DB Bootstrap Workflow
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-central-1
+  ECS_CLUSTER: fastApi-app_ecs
+  ECS_SERVICE: fastApi-app_ecs_service
+  CONTAINER_NAME: fastApi_dockerHub_image
+  LOG_GROUP: /ecs/fastApi-app
+
+jobs:
+  run_db_bootstrap:
+    name: Run one-off ECS DB bootstrap task
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::725423737651:role/github-actions-fastapi-terraform-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Read ECS service runtime configuration
+        id: ecs
+        run: |
+          set -euo pipefail
+
+          SERVICE_JSON=$(aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" \
+            --query 'services[0]' \
+            --output json)
+
+          TASK_DEFINITION=$(echo "$SERVICE_JSON" | jq -r '.taskDefinition')
+          NETWORK_CONFIGURATION=$(echo "$SERVICE_JSON" | jq -c '{awsvpcConfiguration: .networkConfiguration.awsvpcConfiguration}')
+
+          if [ -z "$TASK_DEFINITION" ] || [ "$TASK_DEFINITION" = "null" ]; then
+            echo "Could not find task definition for ECS service $ECS_SERVICE"
+            exit 1
+          fi
+
+          if [ -z "$NETWORK_CONFIGURATION" ] || [ "$NETWORK_CONFIGURATION" = "null" ]; then
+            echo "Could not find network configuration for ECS service $ECS_SERVICE"
+            exit 1
+          fi
+
+          echo "task_definition=$TASK_DEFINITION" >> "$GITHUB_OUTPUT"
+          echo "network_configuration=$NETWORK_CONFIGURATION" >> "$GITHUB_OUTPUT"
+
+          echo "Using task definition: $TASK_DEFINITION"
+          echo "Using network configuration: $NETWORK_CONFIGURATION"
+
+      - name: Create ECS command override
+        run: |
+          cat > overrides.json <<'JSON'
+          {
+            "containerOverrides": [
+              {
+                "name": "fastApi_dockerHub_image",
+                "command": [
+                  "sh",
+                  "-c",
+                  "psql \"postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=require\" -f /app/db_python/schema.sql"
+                ]
+              }
+            ]
+          }
+          JSON
+
+          cat overrides.json
+
+      - name: Run one-off ECS DB bootstrap task
+        id: run_task
+        run: |
+          set -euo pipefail
+
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "$ECS_CLUSTER" \
+            --launch-type FARGATE \
+            --task-definition '${{ steps.ecs.outputs.task_definition }}' \
+            --network-configuration '${{ steps.ecs.outputs.network_configuration }}' \
+            --overrides file://overrides.json \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          if [ -z "$TASK_ARN" ] || [ "$TASK_ARN" = "None" ]; then
+            echo "ECS run-task did not return a task ARN"
+            exit 1
+          fi
+
+          echo "task_arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
+          echo "Started ECS task: $TASK_ARN"
+
+      - name: Wait for DB bootstrap task to finish
+        run: |
+          set -euo pipefail
+
+          TASK_ARN='${{ steps.run_task.outputs.task_arn }}'
+
+          aws ecs wait tasks-stopped \
+            --cluster "$ECS_CLUSTER" \
+            --tasks "$TASK_ARN"
+
+          TASK_JSON=$(aws ecs describe-tasks \
+            --cluster "$ECS_CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --query 'tasks[0]' \
+            --output json)
+
+          echo "$TASK_JSON" | jq '{lastStatus, desiredStatus, stopCode, stoppedReason, containers}'
+
+          EXIT_CODE=$(echo "$TASK_JSON" | jq -r --arg NAME "$CONTAINER_NAME" '.containers[] | select(.name == $NAME) | .exitCode')
+          REASON=$(echo "$TASK_JSON" | jq -r --arg NAME "$CONTAINER_NAME" '.containers[] | select(.name == $NAME) | .reason // empty')
+          TASK_ID=${TASK_ARN##*/}
+
+          echo "CloudWatch log stream should be: ecs/$CONTAINER_NAME/$TASK_ID"
+          aws logs get-log-events \
+            --log-group-name "$LOG_GROUP" \
+            --log-stream-name "ecs/$CONTAINER_NAME/$TASK_ID" \
+            --query 'events[].message' \
+            --output text || true
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "DB bootstrap failed with exit code: $EXIT_CODE"
+            echo "Reason: $REASON"
+            exit 1
+          fi
+
+          echo "DB bootstrap completed successfully."
