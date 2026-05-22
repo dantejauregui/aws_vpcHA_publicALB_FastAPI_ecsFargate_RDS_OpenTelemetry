@@ -8,7 +8,7 @@ services:
     environment:
       # host name: postgres
       POSTGRES_DB: fastApi_db
-      POSTGRES_USER: fastapi_admin
+      POSTGRES_USER: dbadmin
       POSTGRES_PASSWORD: ChangeMe123
 
     ports:

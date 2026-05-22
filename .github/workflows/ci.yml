@@ -1,4 +1,4 @@
-name: ECS Workflow
+name: CI FastApi1 Workflow
 on:
   workflow_dispatch:
 env:
