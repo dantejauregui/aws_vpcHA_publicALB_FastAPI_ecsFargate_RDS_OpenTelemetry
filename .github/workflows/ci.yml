@@ -70,11 +70,19 @@ jobs:
       - name: Container Smoke test (polling with timeout)
         # Adding a dummy DATABASE_URL only for the cicd import check:
         env:
-          DATABASE_URL: postgresql+psycopg://dummy:dummy@localhost:5432/dummy
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_NAME: fastApi_db
+          DB_USER: dbadmin
+          DB_PASSWORD: ChangeMe123
         run: |
           docker run -d \
             -p 8000:8000 \
-            -e DATABASE_URL="$DATABASE_URL" \
+            -e DB_HOST="$DB_HOST" \
+            -e DB_PORT="$DB_PORT" \
+            -e DB_NAME="$DB_NAME" \
+            -e DB_USER="$DB_USER" \
+            -e DB_PASSWORD="$DB_PASSWORD" \
             --name fastapi-smoke \
             $IMAGE_NAME:$IMAGE_TAG
 
