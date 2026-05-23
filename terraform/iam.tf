@@ -35,7 +35,23 @@ data "aws_iam_policy_document" "ecs_execution_permission_policy" {
     actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
-      "logs:PutLogEvents"
+      "logs:PutLogEvents",
+      "ssm:GetParameters",
+      "ssm:GetParameter",
+      "kms:Decrypt"
+    ]
+
+    resources = ["*"]
+  }
+
+  # Parameter Store + KMS for ECS Secrets block permissions:
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ssm:GetParameters",
+      "ssm:GetParameter",
+      "kms:Decrypt"
     ]
 
     resources = ["*"]

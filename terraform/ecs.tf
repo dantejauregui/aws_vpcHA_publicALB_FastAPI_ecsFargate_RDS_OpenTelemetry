@@ -89,6 +89,12 @@ resource "aws_ecs_task_definition" "fastApi_ecs_task_definition" {
           value = "ChangeMe123"
         }
       ]
+      # secrets = [
+      #   {
+      #     name      = "DB_PASSWORD"
+      #     valueFrom = "/fastapi/dev/db/password"
+      #   }
+      # ]
     }
   ])
 }
