@@ -96,7 +96,7 @@ resource "aws_ecs_task_definition" "fastApi_ecs_task_definition" {
 }
 
 resource "aws_ecs_service" "fastApi_ecs_service" {
-  name                   = "${var.project_name}_ecs_service"
+  name                   = "${var.project_name}_backend_service"
   cluster                = aws_ecs_cluster.fastApi_ecs_cluster.id
   task_definition        = aws_ecs_task_definition.fastApi_ecs_task_definition.arn
   desired_count          = 2

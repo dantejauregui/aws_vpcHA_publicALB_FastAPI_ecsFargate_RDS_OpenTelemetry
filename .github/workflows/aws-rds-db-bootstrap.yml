@@ -9,10 +9,10 @@ permissions:
 
 env:
   AWS_REGION: eu-central-1
-  ECS_CLUSTER: fastApi-app_ecs
-  ECS_SERVICE: fastApi-app_ecs_service
+  ECS_CLUSTER: fastApi_ecs
+  ECS_SERVICE: fastApi_ecs_service
   CONTAINER_NAME: fastApi_dockerHub_image
-  LOG_GROUP: /ecs/fastApi-app
+  LOG_GROUP: /ecs/fastApi/backend
 
 jobs:
   run_db_bootstrap:
