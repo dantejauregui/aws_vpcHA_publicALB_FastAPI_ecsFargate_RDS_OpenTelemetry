@@ -28,10 +28,10 @@ resource "aws_cloudwatch_log_group" "fastApi_logs" {
 resource "aws_ecs_cluster" "fastApi_ecs_cluster" {
   name = "${var.project_name}_ecs"
 
-  #   setting {
-  #     name  = "containerInsights"
-  #     value = "enabled"
-  #   }
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
 }
 
 resource "aws_ecs_task_definition" "fastApi_ecs_task_definition" {
