@@ -363,45 +363,6 @@ Secrets should be injected at runtime.
 
 ---
 
-# Operational Concepts Learned
-
-This project intentionally focuses on understanding the operational WHY behind cloud-native infrastructure.
-
-Important concepts explored:
-
-* why ALBs live in public subnets
-* why ECS tasks live in private subnets
-* why NAT Gateways are still required
-* how ECS pulls images from external registries
-* health checks vs business validation
-* polling vs fixed sleeps in CI/CD
-* immutable image tagging
-* runtime validation vs source validation
-* container lifecycle management
-* infrastructure layering
-* state-aware automation
-
----
-
-# Future Improvements
-
-Possible next evolution steps:
-
-* ECS rolling deployment automation
-* ECS blue/green deployments
-* HTTPS with ACM
-* Route53 custom domains
-* ECR migration
-* OpenTelemetry collector sidecar
-* Grafana Cloud dashboards
-* Terraform modularization
-* Multi-environment deployment strategy
-* GitHub OIDC → AWS IAM federation
-* Autoscaling policies
-* WAF integration
-
----
-
 # Local Development
 
 ## Run FastAPI Locally
@@ -437,7 +398,7 @@ curl http://localhost:8000/health
 ---
 
 
-## PostgreSQL Does NOT Use IAM By Default
+## local PostgreSQL Does NOT Use IAM By Default
 
 Your FastAPI app connects like:
 
@@ -453,3 +414,140 @@ AWS IAM is NOT involved.
 Therefore ECS Does NOT Need IAM Permissions To "Talk To DB".
 
 So when you used "multi_az = true", you always connect to the "RDS writer endpoint" when you access the provided RDS URL endpoint hostname.
+
+
+# AWS RDS PostgreSQL Integration
+
+The PostgreSQL database is provisioned using Terraform with:
+
+- Multi-AZ high availability enabled
+- Private subnet placement
+- Dedicated security group
+- Encryption at rest enabled
+- ECS-only inbound access on port 5432
+
+Key infrastructure components:
+
+- `aws_db_instance`
+- `aws_db_subnet_group`
+- `aws_security_group`
+
+Important configuration:
+
+```hcl
+publicly_accessible = false
+multi_az            = true
+storage_encrypted   = true
+````
+
+### Security Group Design
+
+RDS only accepts inbound PostgreSQL traffic from the ECS service security group:
+
+```hcl
+security_groups = [aws_security_group.fastApi_ecs_sg.id]
+```
+
+This prevents direct internet access to the database.
+
+---
+
+## ECS ↔ RDS Connectivity
+
+The FastAPI application connects to PostgreSQL using SQLAlchemy ORM.
+
+Database connection settings are injected into ECS containers through environment variables and AWS Systems Manager Parameter Store SecureString values.
+
+Example runtime variables:
+
+```bash
+DB_HOST
+DB_PORT
+DB_NAME
+DB_USER
+DB_PASSWORD
+```
+
+The application dynamically builds the SQLAlchemy connection string at runtime.
+
+---
+
+## Secret Management
+
+Database passwords are stored manually in AWS Systems Manager Parameter Store using `SecureString`.
+
+Terraform does **not** manage the plaintext password value to avoid storing secrets inside Terraform state.
+
+ECS injects secrets at runtime using:
+
+```hcl
+secrets = [
+  {
+    name      = "DB_PASSWORD"
+    valueFrom = "/fastapi/dev/db/password"
+  }
+]
+```
+
+The ECS execution role requires:
+
+* `ssm:GetParameter`
+* `ssm:GetParameters`
+* `kms:Decrypt`
+
+permissions.
+
+---
+
+## Database Schema Bootstrap
+
+Database schema creation is executed through a dedicated one-off ECS task triggered from GitHub Actions.
+
+This avoids:
+
+* Making RDS publicly accessible
+* Manual SSH/psql administration
+* Schema creation from developer laptops
+
+Workflow architecture:
+
+```text
+GitHub Actions
+↓
+OIDC Authentication to AWS
+↓
+Run temporary ECS Fargate task
+↓
+Execute schema.sql using psql
+↓
+Task exits automatically
+```
+
+The ECS task overrides the default container command to run:
+
+```bash
+psql ... -f /app/db_python/schema.sql
+```
+
+instead of starting the FastAPI web server.
+
+This approach is closer to real-world migration orchestration patterns used in production environments.
+
+
+---
+
+# Future Improvements
+
+Possible next evolution steps:
+
+* ECS rolling deployment automation
+* ECS blue/green deployments
+* HTTPS with ACM
+* Route53 custom domains
+* ECR migration
+* OpenTelemetry collector sidecar
+* Grafana Cloud dashboards
+* Terraform modularization
+* Multi-environment deployment strategy
+* Autoscaling policies
+* WAF integration
