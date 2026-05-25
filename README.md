@@ -497,7 +497,9 @@ The ECS execution role requires:
 
 permissions.
 
+
 ---
+
 
 ## Database Schema Bootstrap
 
@@ -536,14 +538,55 @@ This approach is closer to real-world migration orchestration patterns used in p
 
 ---
 
+
+# ROUTE53/DNS Configuration
+
+This project configures DNS records for two subdomains that route traffic to an Application Load Balancer (ALB).
+
+## Prerequisites that we will import using Terraform.data block:
+
+- Existing Route 53 hosted zone for `dnt.xyz` (as example)
+- ACM wildcard certificate for `*.dnt.xyz` (as example)
+
+## Subdomains
+
+The following subdomains are configured to point to the ALB using terraform:
+
+- `backend.dnt.xyz` - Backend services (as example)
+- `frontend.dnt.xyz` - Frontend application (as example)
+
+## Infrastructure Components
+
+- **Route 53 Records**: Alias records that route subdomain traffic to the ALB
+- **ACM Certificate**: calling Wildcard SSL certificate for HTTPS termination
+
+---
+
+# ALB Routing
+
+Route 53 sends both `backend.<domain>` and `frontend.<domain>` traffic to the same ALB. The ALB then checks the HTTPS listener rules by priority: lower numbers are evaluated first. 
+
+The backend host rule forwards `backend.<domain>` to the FastAPI target group, which sends traffic to the FastAPI ECS service on port `8000`. 
+
+The frontend host rule forwards `frontend.<domain>` to the Frontend target group, which sends traffic to the frontend ECS service on port `5678`.
+
+In short:
+
+```text
+backend.<domain>  -> ALB -> FastAPI target group -> FastAPI ECS tasks
+frontend.<domain> -> ALB -> frontend target group     -> frontend ECS tasks
+```
+
+
+---
+
+
 # Future Improvements
 
 Possible next evolution steps:
 
 * ECS rolling deployment automation
 * ECS blue/green deployments
-* HTTPS with ACM
-* Route53 custom domains
 * ECR migration
 * OpenTelemetry collector sidecar
 * Grafana Cloud dashboards

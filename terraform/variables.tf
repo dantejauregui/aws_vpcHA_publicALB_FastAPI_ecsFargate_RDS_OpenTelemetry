@@ -8,7 +8,7 @@ variable "vpc_cidr" {
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string
-  default     = "fastApi-app"
+  default     = "fastApi"
 }
 
 # Environment
@@ -29,8 +29,21 @@ variable "container_port" {
   type    = number
   default = 8000
 }
+# FastApi (Backend) DNS Domain URL
+variable "backend_domain_name" {
+  description = "Public hostname for fastApi Backend. This hostname must point to the existing ALB."
+  type        = string
+  default     = "backend.dntgrowth.xyz"
+}
+
 # Frontend Port
 variable "frontend_container_port" {
   type    = number
   default = 5678
+}
+# Frontend DNS Domain URL
+variable "frontend_domain_name" {
+  description = "Public hostname for Fronted. This hostname must point to the existing ALB."
+  type        = string
+  default     = "frontend.dntgrowth.xyz"
 }

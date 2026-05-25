@@ -9,6 +9,13 @@ resource "aws_security_group" "fastApi_rds_sg" {
     protocol        = "tcp"
     security_groups = [aws_security_group.fastApi_ecs_sg.id]
   }
+  ingress {
+    description     = "PostgreSQL from n8n ECS tasks"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.n8n_ecs_sg.id]
+  }
 
   egress {
     from_port   = 0

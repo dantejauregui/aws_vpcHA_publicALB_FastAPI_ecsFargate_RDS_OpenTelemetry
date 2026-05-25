@@ -6,3 +6,7 @@ output "rds_endpoint" {
   value       = aws_db_instance.fastApi_rds.endpoint
   description = "RDS_DATABASE_ENDPOINT"
 }
+output "n8n_url" {
+  description = "Public n8n URL. Make sure this hostname has a Route53 alias/CNAME pointing to the ALB."
+  value       = "https://${var.frontend_domain_name}"
+}

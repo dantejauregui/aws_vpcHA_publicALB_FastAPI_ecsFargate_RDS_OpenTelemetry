@@ -1,6 +1,6 @@
 resource "aws_security_group" "fastApi_ecs_sg" {
   name        = "${var.project_name}_ecs"
-  description = "Allow all outbound traffic"
+  description = "Allow all outbound traffic and Allow ALB access to ECS tasks"
   vpc_id      = aws_vpc.fastApi_vpc.id
 
   ingress {
@@ -21,8 +21,8 @@ resource "aws_security_group" "fastApi_ecs_sg" {
 }
 
 resource "aws_cloudwatch_log_group" "fastApi_logs" {
-  name              = "/ecs/${var.project_name}"
-  retention_in_days = 7
+  name              = "/ecs/${var.project_name}/backend"
+  retention_in_days = 3
 }
 
 resource "aws_ecs_cluster" "fastApi_ecs_cluster" {
@@ -83,18 +83,18 @@ resource "aws_ecs_task_definition" "fastApi_ecs_task_definition" {
         {
           name  = "DB_USER"
           value = "dbadmin"
-        },
+        }
+        # {
+        #   name  = "DB_PASSWORD"
+        #   value = "ChangeMe123"
+        # }
+      ]
+      secrets = [
         {
-          name  = "DB_PASSWORD"
-          value = "ChangeMe123"
+          name      = "DB_PASSWORD"
+          valueFrom = "/fastapi/dev/db/password"
         }
       ]
-      # secrets = [
-      #   {
-      #     name      = "DB_PASSWORD"
-      #     valueFrom = "/fastapi/dev/db/password"
-      #   }
-      # ]
     }
   ])
 }
@@ -122,5 +122,8 @@ resource "aws_ecs_service" "fastApi_ecs_service" {
     container_port   = var.container_port
   }
 
-  depends_on = [aws_lb_listener.fastApi_alb_listener]
+  depends_on = [
+    aws_lb_listener.fastApi_alb_https_listener,
+    aws_lb_listener_rule.fastapi_https_host
+  ]
 }
