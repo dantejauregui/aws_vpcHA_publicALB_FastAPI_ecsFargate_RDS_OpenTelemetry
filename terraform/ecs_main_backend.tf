@@ -84,10 +84,6 @@ resource "aws_ecs_task_definition" "fastApi_ecs_task_definition" {
           name  = "DB_USER"
           value = "dbadmin"
         }
-        # {
-        #   name  = "DB_PASSWORD"
-        #   value = "ChangeMe123"
-        # }
       ]
       secrets = [
         {

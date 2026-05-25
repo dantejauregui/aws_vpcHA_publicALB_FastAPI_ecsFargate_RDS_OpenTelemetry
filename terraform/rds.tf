@@ -1,3 +1,9 @@
+# DB Password stored in Parameter store:
+data "aws_ssm_parameter" "db_password" {
+  name            = "/fastapi/dev/db/password"
+  with_decryption = true
+}
+
 resource "aws_security_group" "fastApi_rds_sg" {
   name        = "postgres-sg"
   description = "Allow PostgreSQL access"
@@ -32,7 +38,7 @@ resource "aws_db_instance" "fastApi_rds" {
   engine_version         = "17.10"
   instance_class         = "db.t3.micro"
   username               = "dbadmin"
-  password               = "ChangeMe123"
+  password               = data.aws_ssm_parameter.db_password.value
   skip_final_snapshot    = true
   publicly_accessible    = false
   storage_encrypted      = true
